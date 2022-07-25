@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 add_library (spongechecks STATIC byte_stream_test_harness.cc)
 
 macro (add_test_exec exec_name)
@@ -19,3 +20,4 @@ add_test_exec (byte_stream_one_write)
 add_test_exec (byte_stream_two_writes)
 add_test_exec (byte_stream_capacity)
 add_test_exec (byte_stream_many_writes)
+
