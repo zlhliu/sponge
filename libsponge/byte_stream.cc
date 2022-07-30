@@ -19,20 +19,13 @@ size_t ByteStream::write(const string &data) {
     size_t byte_accepted = 0;
     if (new_len > max_len) {
         byte_accepted = max_len - byte_stream.size();
-        cout<< ">max_len\n";
         string temp = data.substr(0, (max_len - byte_stream.size()));
         byte_stream += temp;
-        cout<<"max_len:"<<max_len<<'\n';
-        cout<<"byte_stream.size:"<<byte_stream.size()<<'\n';
-        cout<<"byte_accepted:"<<byte_accepted<<'\n';
-        
     } else {
-        cout<< "<=max_len";
         byte_stream += data;
         byte_accepted = data.size();
     }
     has_written += byte_accepted;
-    cout<<"has_written"<<has_written<<'\n';
     return byte_accepted;
 }
 
@@ -44,13 +37,11 @@ string ByteStream::peek_output(const size_t len) const {
     } else {
         ans = byte_stream.substr(0, len);
     }
-    cout<< "输出2";
     return ans;
 }
 
 //! \param[in] len bytes will be removed from the output side of the buffer
 void ByteStream::pop_output(const size_t len) {
-    cout<< "输出3";
     if (len > byte_stream.size()) {
         has_read += byte_stream.size();
         byte_stream.erase(0, byte_stream.size());
@@ -64,7 +55,6 @@ void ByteStream::pop_output(const size_t len) {
 //! \param[in] len bytes will be popped and returned
 //! \returns a string
 std::string ByteStream::read(const size_t len) {
-    cout<< "输出4";
     string ans;
     if (len > byte_stream.size()) {
         ans=peek_output(byte_stream.size());
@@ -91,3 +81,7 @@ size_t ByteStream::bytes_written() const { return has_written; }
 size_t ByteStream::bytes_read() const { return has_read; }
 
 size_t ByteStream::remaining_capacity() const { return (max_len - byte_stream.size()); }
+
+size_t ByteStream::size() const{
+    return byte_stream.size();
+}
