@@ -51,4 +51,6 @@ size_t StreamReassembler::unassembled_bytes() const {
     return _map.size()-(_first_unassembled-_first_unread)-1; 
 }
 
-bool StreamReassembler::empty() const { return _map.size()-(_first_unassembled-_first_unread)==1; }
+bool StreamReassembler::empty() const { 
+    return _map.size()-(_first_unassembled-_first_unread)==1; 
+}
