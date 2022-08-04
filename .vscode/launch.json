@@ -4,7 +4,7 @@
         "name": "(gdb) 启动",
         "type": "cppdbg",
         "request": "launch",
-        "program": "${workspaceFolder}/build/tests/wrapping_integers_unwrap",
+        "program": "${workspaceFolder}/build/tests/recv_connect",
         "args": [],
         "stopAtEntry": false,
         "cwd": "${fileDirname}",
