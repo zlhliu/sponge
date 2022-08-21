@@ -17,8 +17,18 @@
 //! segments if the retransmission timer expires.
 class TCPSender {
   private:
+    // sym发出 
+    bool _syn_sent =false; 
+    // 定时器
+    bool _timer_running=false;
     //! our initial sequence number, the number for our SYN.
     WrappingInt32 _isn;
+
+    // 已发送中未被确认的字节数
+    size_t _bytes_in_flight;
+
+    // 接收方的剩余空间
+    size_t _receiver_free_space=0; 
 
     //! outbound queue of segments that the TCPSender wants sent
     std::queue<TCPSegment> _segments_out{};
@@ -58,8 +68,11 @@ class TCPSender {
 
     //! \brief Notifies the TCPSender of the passage of time
     void tick(const size_t ms_since_last_tick);
-    //!@}
 
+    // 
+    void TCPSender::send_segment(TCPSegment &seg);
+    //!@}
+    
     //! \name Accessors
     //!@{
 
