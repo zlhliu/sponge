@@ -18,18 +18,26 @@
 class TCPSender {
   private:
     // sym发出 
-    bool _syn_sent =false; 
+    bool _syn_sent=false; 
     // 定时器
     bool _timer_running=false;
+    // 时间到期，触发重发
+    unsigned int _time_elapsed = 0;
+    // fin发出
+    bool _fin_sent=false;
     //! our initial sequence number, the number for our SYN.
     WrappingInt32 _isn;
 
+    // 已发送但未收到ack的seg
+    std::queue<TCPSegment> _segments_outstanding{};  
     // 已发送中未被确认的字节数
     size_t _bytes_in_flight;
 
+    // 接收方滑动窗口
+    uint16_t _receiver_window_size = 0;
     // 接收方的剩余空间
-    size_t _receiver_free_space=0; 
-
+    uint16_t _receiver_free_space=0; 
+    uint16_t _consecutive_retransmissions=0;
     //! outbound queue of segments that the TCPSender wants sent
     std::queue<TCPSegment> _segments_out{};
 
@@ -41,6 +49,8 @@ class TCPSender {
 
     //! the (absolute) sequence number for the next byte to be sent
     uint64_t _next_seqno{0};
+
+    unsigned int _rto=0;
 
   public:
     //! Initialize a TCPSender
@@ -70,7 +80,9 @@ class TCPSender {
     void tick(const size_t ms_since_last_tick);
 
     // 
-    void TCPSender::send_segment(TCPSegment &seg);
+    void send_segment(TCPSegment &seg);
+
+
     //!@}
     
     //! \name Accessors
