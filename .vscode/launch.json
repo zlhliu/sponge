@@ -4,7 +4,7 @@
         "name": "(gdb) 启动",
         "type": "cppdbg",
         "request": "launch",
-        "program": "${workspaceFolder}/build/tests/recv_connect",
+        "program": "${workspaceFolder}/build/tests/send_retx",
         "args": [],
         "stopAtEntry": false,
         "cwd": "${fileDirname}",

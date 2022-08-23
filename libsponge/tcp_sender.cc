@@ -4,6 +4,8 @@
 
 #include <random>
 
+#include <iostream>
+
 // Dummy implementation of a TCP sender
 
 // For Lab 3, please replace with a real implementation that passes the
@@ -20,13 +22,15 @@ using namespace std;
 TCPSender::TCPSender(const size_t capacity, const uint16_t retx_timeout, const std::optional<WrappingInt32> fixed_isn)
     : _isn(fixed_isn.value_or(WrappingInt32{random_device()()}))
     , _initial_retransmission_timeout{retx_timeout}
-    , _stream(capacity) {}
+    , _stream(capacity)
+    , _rto(retx_timeout) {}
 uint64_t TCPSender::bytes_in_flight() const { return _bytes_in_flight; }
 
 
 void TCPSender::send_segment(TCPSegment &seg) {
     // TCP报文头部根据ask写入待发送的首位序列号
     seg.header().seqno = wrap(_next_seqno, _isn);
+    std::cout<<seg.payload().str();
     _next_seqno += seg.length_in_sequence_space();
     _bytes_in_flight += seg.length_in_sequence_space();
 
@@ -116,9 +120,10 @@ void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_si
     while (!_segments_outstanding.empty()) {
         // 等待ack的首位
         TCPSegment seg = _segments_outstanding.front();
-
+        TCPSegment seg_back= _segments_outstanding.back();
         // 如果接收到的ack大于等于首位seg的seqno则确认接受，并将首位pop
-        if (unwrap(seg.header().seqno, _isn, _next_seqno) + seg.length_in_sequence_space() <= abs_ackno) {
+        if (unwrap(seg.header().seqno, _isn, _next_seqno) + seg.length_in_sequence_space() <= abs_ackno &&
+        abs_ackno<=(unwrap(seg_back.header().seqno, _isn, _next_seqno) + seg_back.length_in_sequence_space())) {
             // 传输中的字节减少
             _bytes_in_flight -= seg.length_in_sequence_space();
             _segments_outstanding.pop();
@@ -166,7 +171,8 @@ void TCPSender::tick(const size_t ms_since_last_tick) {
         if (_receiver_window_size || _segments_outstanding.front().header().syn) {
             ++_consecutive_retransmissions;
             // 等待时间减半
-            _rto <<= 1;
+            if(_rto>_initial_retransmission_timeout/32)
+                _rto <<= 1;
         }
         // 已经重传，所以等待时间重置
         _time_elapsed = 0;
