@@ -26,6 +26,7 @@ void TCPReceiver::segment_received(const TCPSegment &seg) {
 }
 
 optional<WrappingInt32> TCPReceiver::ackno() const { 
+    // 1
     if(_isn_set==true){
         // isn和fin都是占序列号的
         uint64_t absolute_seq=_reassembler.stream_out().bytes_written();
