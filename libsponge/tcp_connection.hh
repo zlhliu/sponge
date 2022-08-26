@@ -9,6 +9,16 @@
 //! \brief A complete endpoint of a TCP connection
 class TCPConnection {
   private:
+    size_t _time_since_last_segment_received{0};
+    bool _active{true};
+
+    void send_sender_segments();
+    void clean_shutdown();
+    void unclean_shutdown();
+    bool try_clean_shutdown();
+    // In the connect
+    void send_segments();
+    
     TCPConfig _cfg;
     TCPReceiver _receiver{_cfg.recv_capacity};
     TCPSender _sender{_cfg.send_capacity, _cfg.rt_timeout, _cfg.fixed_isn};
@@ -28,6 +38,7 @@ class TCPConnection {
     //! \brief Initiate a connection by sending a SYN segment
     void connect();
 
+
     //! \brief Write data to the outbound byte stream, and send it over TCP if possible
     //! \returns the number of bytes from `data` that were actually written.
     size_t write(const std::string &data);
@@ -40,14 +51,11 @@ class TCPConnection {
     //!@}
 
     //! \name "Output" interface for the reader
-    //!@{
-
+    //!@{​
     //! \brief The inbound byte stream received from the peer
     ByteStream &inbound_stream() { return _receiver.stream_out(); }
-    //!@}
-
-    //! \name Accessors used for testing
-
+    //!@}​
+    //! \name Accessors used for testing​
     //!@{
     //! \brief number of bytes sent and not yet acknowledged, counting SYN/FIN each as one byte
     size_t bytes_in_flight() const;
@@ -57,14 +65,11 @@ class TCPConnection {
     size_t time_since_last_segment_received() const;
     //!< \brief summarize the state of the sender, receiver, and the connection
     TCPState state() const { return {_sender, _receiver, active(), _linger_after_streams_finish}; };
-    //!@}
-
+    //!@}​
     //! \name Methods for the owner or operating system to call
-    //!@{
-
+    //!@{​
     //! Called when a new segment has been received from the network
     void segment_received(const TCPSegment &seg);
-
     //! Called periodically when time elapses
     void tick(const size_t ms_since_last_tick);
 
@@ -78,14 +83,12 @@ class TCPConnection {
     //! \returns `true` if either stream is still running or if the TCPConnection is lingering
     //! after both streams have finished (e.g. to ACK retransmissions from the peer)
     bool active() const;
-    //!@}
-
+    //!@}​
     //! Construct a new connection from a configuration
     explicit TCPConnection(const TCPConfig &cfg) : _cfg{cfg} {}
 
     //! \name construction and destruction
-    //! moving is allowed; copying is disallowed; default construction not possible
-
+    //! moving is allowed; copying is disallowed; default construction not possible​
     //!@{
     ~TCPConnection();  //!< destructor sends a RST if the connection is still open
     TCPConnection() = delete;
@@ -95,5 +98,4 @@ class TCPConnection {
     TCPConnection &operator=(const TCPConnection &other) = delete;
     //!@}
 };
-
 #endif  // SPONGE_LIBSPONGE_TCP_FACTORED_HH

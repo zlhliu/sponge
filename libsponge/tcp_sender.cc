@@ -30,7 +30,7 @@ uint64_t TCPSender::bytes_in_flight() const { return _bytes_in_flight; }
 void TCPSender::send_segment(TCPSegment &seg) {
     // TCP报文头部根据ask写入待发送的首位序列号
     seg.header().seqno = wrap(_next_seqno, _isn);
-    std::cout<<seg.payload().str();
+    // std::cout<<seg.payload().str();
     _next_seqno += seg.length_in_sequence_space();
     _bytes_in_flight += seg.length_in_sequence_space();
 
@@ -49,8 +49,7 @@ void TCPSender::send_segment(TCPSegment &seg) {
 }
 
 void TCPSender::fill_window() {
-    // 第一个报文，发送syn
-    // 注意的是，无内容
+    // 还没发syn时
     if (!_syn_sent) {
         _syn_sent = true;
         TCPSegment seg;
@@ -59,11 +58,11 @@ void TCPSender::fill_window() {
         return;
     }
 
-    // 有已发送的seg，但sym未应答
+    // 有将发送的seg，但syn未收到ack
     if (!_segments_outstanding.empty() && _segments_outstanding.front().header().syn)
         return;
     
-    
+    // 没有需要发送的文字
     if (!_stream.buffer_size() && !_stream.eof())
         return;
         
@@ -71,6 +70,7 @@ void TCPSender::fill_window() {
     if (_fin_sent)
         return;
 
+    
     if (_receiver_window_size) {
         // 如果滑动窗口不为0
         while (_receiver_free_space) {
@@ -116,7 +116,7 @@ void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_si
     _receiver_window_size = window_size;
     _receiver_free_space = window_size;
 
-    // 有发送但未接受ack的seg
+    // 有发送但未接受ack的seg，则检查是否有需要pop的(因为此时接收到ack了)
     while (!_segments_outstanding.empty()) {
         // 等待ack的首位
         TCPSegment seg = _segments_outstanding.front();
@@ -168,11 +168,10 @@ void TCPSender::tick(const size_t ms_since_last_tick) {
         // 放入待发送队列
         _segments_out.push(_segments_outstanding.front());
         
+        // syn未收到ack或者
         if (_receiver_window_size || _segments_outstanding.front().header().syn) {
             ++_consecutive_retransmissions;
-            // 等待时间减半
-            if(_rto>_initial_retransmission_timeout/32)
-                _rto <<= 1;
+            _rto <<= 1;
         }
         // 已经重传，所以等待时间重置
         _time_elapsed = 0;

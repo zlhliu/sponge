@@ -7,7 +7,6 @@
 #include "wrapping_integers.hh"
 
 #include <optional>
-
 //! \brief The "receiver" part of a TCP implementation.
 
 //! Receives and reassembles segments into a ByteStream, and computes
